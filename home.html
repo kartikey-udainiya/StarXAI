@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login & Register</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        background: #fff;
+        padding: 20px 30px;
+        width: 320px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        transition: 0.3s;
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        background: #007bff;
+        border: none;
+        color: white;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #0056b3;
+    }
+    .toggle {
+        text-align: center;
+        margin-top: 10px;
+        cursor: pointer;
+        color: #007bff;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Login Form -->
+    <div id="loginForm">
+        <h2>Login</h2>
+        <input id="loginUsername" type="text" placeholder="User Name" required>
+        <input id="loginPassword" type="password" placeholder="Password" required>
+        <button onclick="loginUser()">Login</button>
+        <p class="toggle" onclick="showRegister()">Don’t have an account? Register</p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" style="display: none;">
+        <h2>Register</h2>
+        <input id="registerUsername" type="text" placeholder="User Name" required>
+        <input id="registerPassword" type="password" placeholder="Password" required>
+        <button onclick="registerUser()">Register</button>
+        <p class="toggle" onclick="showLogin()">Already have an account? Login</p>
+    </div>
+
+</div>
+
+<script>
+
+    // Show/Hide Forms
+    function showRegister() {
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("registerForm").style.display = "block";
+    }
+    function showLogin() {
+        document.getElementById("registerForm").style.display = "none";
+        document.getElementById("loginForm").style.display = "block";
+    }
+
+    // Change this to your backend API URL
+    const API_URL = "http://localhost:3000/api";
+
+  
+    // Register Function
+async function registerUser() {
+    const username = document.getElementById("registerUsername").value;
+    const password = document.getElementById("registerPassword").value;
+
+    try {
+        const response = await fetch(`${API_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            alert("User Registered Successfully");
+            showLogin(); // Switch to login form
+        } else {
+            alert(data.message || "Registration failed");
+        }
+
+    } catch (error) {
+        alert("Error: Unable to connect to server");
+        console.error(error);
+    }
+}
+
+
+    // Login Function
+    async function loginUser() {
+        const username = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            alert("Login Successful!");
+            // Redirect Example (change destination page)
+            window.location.href = "dashboard.html";
+        } else {
+            alert(data.message || "Login failed");
+        }
+    }
+
+</script>
+
+</body>
+</html>
