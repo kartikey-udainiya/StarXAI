@@ -4,8 +4,8 @@ import { Server } from "socket.io";
 import dotenv from "dotenv";
 import authRouter from "./src/router/auth.js";
 import jobsRouter from "./src/router/jobs.js";
-import pgClient from "./src/db/pg.js";
 import cors from "cors";
+import authLimiter from "./src/middleware/rateLimiter.js";
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-app.use("/api", authRouter);
+app.use("/api", authLimiter, authRouter);
 app.use("/api/v1/jobs", jobsRouter);
 
 io.on("connection", (socket) => {
