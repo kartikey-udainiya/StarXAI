@@ -88,6 +88,8 @@
   <div id="jobsList">Loading jobs...</div>
 </div>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 <script>
   const API_URL = "http://localhost:3000/api/v1/jobs";
   const token = localStorage.getItem("token");
@@ -116,7 +118,11 @@
         jobsList.innerHTML += `
           <div class="job-card" onclick="toggleJobDetails(${job.id})">
             <strong>${job.title}</strong><br>
-            <small>Status: ${job.status} | Priority: ${job.priority}</small>
+            <small>
+              Status:
+              <span id="job-status-${job.id}">${job.status}</span>
+              | Priority: ${job.priority}
+            </small>
             <div id="job-details-${job.id}" class="job-details" style="display:none;"></div>
           </div>
         `;
@@ -146,7 +152,11 @@
         detailsDiv.innerHTML = `
           <p>Description: ${data.job.description || "No description"}</p>
           <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
-          <p>Status: ${data.job.completed_at ? new Date(data.job.completed_at).toLocaleString() : "Not completed"}</p>
+          <p>
+            Status: ${data.job.status}
+            | Completed:
+            ${data.job.completed_at ? new Date(data.job.completed_at).toLocaleString() : "Not completed"}
+          </p>
         `;
         detailsDiv.style.display = "block";
       }
@@ -192,7 +202,42 @@
     window.location.href = "home.html";
   }
 
+  
   fetchJobs();
+
+  const socket = io("http://localhost:3000");
+
+  socket.on("jobStatusUpdated", ({ jobId, status, completedAt }) => {
+
+  const statusSpan = document.getElementById(`job-status-${jobId}`);
+  if (statusSpan) {
+    statusSpan.textContent = status;
+  }
+
+  const detailsDiv = document.getElementById(`job-details-${jobId}`);
+  if (detailsDiv && detailsDiv.style.display === "block") {
+    (async () => {
+      const response = await fetch(`${API_URL}/${jobId}`, {
+        headers: { Authorization: token },
+      });
+      const data = await response.json();
+      if (data.job) {
+        detailsDiv.innerHTML = `
+          <p>Description: ${data.job.description || "No description"}</p>
+          <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
+          <p>
+            Status: ${data.job.status}
+            | Completed:
+            ${data.job.completed_at
+              ? new Date(data.job.completed_at).toLocaleString()
+              : "Not completed"}
+          </p>
+        `;
+      }
+    })();
+  }
+
+});
 </script>
 
 </body>

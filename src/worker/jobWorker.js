@@ -1,12 +1,27 @@
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
 import { Worker } from "bullmq";
 import pgClient from "../db/pg.js";
 import { redisConnection } from "../db/redis.js";
+import { io as ClientIO } from "socket.io-client";
 
+// Connect to Socket.IO server (your Express + Socket.IO app)
+const socket = ClientIO("http://localhost:3000");
+
+socket.on("connect", () => {
+  console.log("Worker connected to Socket.IO server with id:", socket.id);
+});
+
+socket.on("connect_error", (err) => {
+  console.error("Socket.IO connection error in worker:", err.message);
+});
 
 const delays = {
   1: [15000, 25000], // Low: 15–25 sec
-  2: [8000, 12000], // Medium: 8–12 sec
-  3: [3000, 5000], // High: 3–5 sec
+  2: [8000, 12000],  // Medium: 8–12 sec
+  3: [3000, 5000],   // High: 3–5 sec
 };
 
 const jobWorker = new Worker(
@@ -14,21 +29,26 @@ const jobWorker = new Worker(
   async (job) => {
     const { jobId, priority } = job.data;
 
-    // Update status to processing
-    console.log(jobId, priority);
+    // 1) Update status to processing in DB
     await pgClient.query(
-
       "UPDATE jobs SET status = 'processing' WHERE id = $1",
       [jobId]
     );
+
+    // 2) Emit status change to all connected clients
+    socket.emit("jobStatusUpdated", {
+      jobId,
+      status: "processing",
+    });
 
     const [min, max] = delays[priority] || delays[1];
     const duration = Math.floor(Math.random() * (max - min) + min);
 
     console.log(`Processing job ${jobId} for ${duration}ms...`);
-    
+
+    // Simulate work
     await new Promise((resolve) => setTimeout(resolve, duration));
-    
+
     return `Completed in ${duration}ms`;
   },
   { connection: redisConnection }
@@ -37,14 +57,26 @@ const jobWorker = new Worker(
 jobWorker.on("completed", async (job, result) => {
   const { jobId } = job.data;
 
-  await pgClient.query(
+  const updateResult = await pgClient.query(
     `UPDATE jobs 
      SET status = 'completed', completed_at = NOW() 
-     WHERE id = $1`,
+     WHERE id = $1
+     RETURNING completed_at`,
     [jobId]
   );
+
+  const completedAt = updateResult.rows[0]?.completed_at || null;
+
+  socket.emit("jobStatusUpdated", {
+    jobId,
+    status: "completed",
+    completedAt,
+  });
 
   console.log(`Job ${jobId} finished:`, result);
 });
 
 console.log("Worker started: Listening for jobs...");
+jobWorker.on("failed", (job, err) => {
+  console.error(`Job ${job.id} failed:`, err);
+});
