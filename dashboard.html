@@ -73,7 +73,6 @@
   <input id="jobTitle" type="text" placeholder="Job Title" required />
   <textarea id="jobDescription" placeholder="Description"></textarea>
 
-  <!-- Priority dropdown -->
   <select id="jobPriority">
     <option value="1">Low</option>
     <option value="2">Medium</option>
@@ -95,7 +94,7 @@
 
   if (!token) {
     alert("Unauthorized access");
-    window.location.href = "index.html";
+    window.location.href = "home.html";
   }
 
   async function fetchJobs() {
