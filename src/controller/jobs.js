@@ -77,11 +77,13 @@ const jobs = {
         status: newJob.status,
       });
 
-      await jobQueue.add("job-processing", {
-        jobId: newJob.id,
-        priority: newJob.priority,
-        userId,
-      });
+      await jobQueue.add(
+        "job-processing",
+        { jobId: newJob.id, priority: newJob.priority },
+        {
+          priority: newJob.priority === 3 ? 0 : newJob.priority === 2 ? 5 : 10,
+        }
+      );
 
       res.status(201).send({ success: true, job: newJob });
     } catch (error) {

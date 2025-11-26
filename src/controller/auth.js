@@ -11,10 +11,9 @@ const auth = {
             if (userCheck.rows.length > 0) {
                 return res.status(400).send({ success: false, message: "User already exists" });
             }
-            //convert password to hash   
+             
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Here you would normally add code to save the user to the database
             const result = await pgClient.query("INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id", [email, hashedPassword]);
             const userId = result.rows[0].id;
             console.log("User registered with ID:", userId);
@@ -39,7 +38,7 @@ const auth = {
             if (!passwordMatch) {
                 return res.status(400).send({ success: false, message: "Invalid email or password" });
             }
-            // send success response with jwt token
+    
             const token = generateToken({userId: user.id, email: user.email});
             res.status(200).send({ success: true, token: `Bearer ${token}` });
         } catch (error) {

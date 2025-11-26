@@ -1,13 +1,20 @@
 import dotenv from "dotenv";
 import path from "path";
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, "../../.env") });
+
+// the upper code is the resolution beacuse the jobWorker.js was not able to load .env file 
+// hence i have to manually provide the path of it.
 
 import { Worker } from "bullmq";
 import pgClient from "../db/pg.js";
 import { redisConnection } from "../db/redis.js";
 import { io as ClientIO } from "socket.io-client";
+console.log("PGHOST from worker:", process.env.PGHOST);
 
-// Connect to Socket.IO server (your Express + Socket.IO app)
 const socket = ClientIO("http://localhost:3000");
 
 socket.on("connect", () => {
@@ -28,6 +35,8 @@ const jobWorker = new Worker(
   "job-processing",
   async (job) => {
     const { jobId, priority } = job.data;
+
+    console.log(jobId,priority);
 
     // 1) Update status to processing in DB
     await pgClient.query(

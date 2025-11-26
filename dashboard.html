@@ -1,244 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    padding: 20px;
-  }
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  .container {
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  input, textarea, select {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  button {
-    margin-top: 15px;
-    width: 100%;
-    padding: 10px;
-    background: #007bff;
-    border: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .logout-btn {
-    background: #dc3545;
-  }
-  .job-card {
-    padding: 10px;
-    margin: 10px 0;
-    background: #e9ecef;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .job-details {
-    margin-top: 8px;
-    padding: 10px;
-    background: #ffffff;
-    border-left: 3px solid #007bff;
-  }
-</style>
-</head>
-
-<body>
-
-<div class="header">
-  <h2>Dashboard</h2>
-</div>
-
-<div class="container">
-  <h3>Create New Job</h3>
-  <input id="jobTitle" type="text" placeholder="Job Title" required />
-  <textarea id="jobDescription" placeholder="Description"></textarea>
-
-  <select id="jobPriority">
-    <option value="1">Low</option>
-    <option value="2">Medium</option>
-    <option value="3">High</option>
-  </select>
-
-  <button onclick="createJob()">Add Job</button>
-  <button class="logout-btn" onclick="logout()">Logout</button>
-
-  <hr />
-
-  <h3>Your Jobs</h3>
-  <div id="jobsList">Loading jobs...</div>
-</div>
-
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-<script>
-  const API_URL = "http://localhost:3000/api/v1/jobs";
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("Unauthorized access");
-    window.location.href = "home.html";
-  }
-
-  async function fetchJobs() {
-    try {
-      const response = await fetch(`${API_URL}/list`, {
-        headers: { Authorization: token },
-      });
-
-      const data = await response.json();
-      const jobsList = document.getElementById("jobsList");
-      jobsList.innerHTML = "";
-
-      if (!data.jobs || data.jobs.length === 0) {
-        jobsList.innerHTML = "<p>No jobs found</p>";
-        return;
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
       }
 
-      data.jobs.forEach((job) => {
-        jobsList.innerHTML += `
-          <div class="job-card" onclick="toggleJobDetails(${job.id})">
-            <strong>${job.title}</strong><br>
-            <small>
-              Status:
-              <span id="job-status-${job.id}">${job.status}</span>
-              | Priority: ${job.priority}
-            </small>
-            <div id="job-details-${job.id}" class="job-details" style="display:none;"></div>
-          </div>
-        `;
-      });
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-    }
-  }
-
-  async function toggleJobDetails(jobId) {
-    const detailsDiv = document.getElementById(`job-details-${jobId}`);
-    const isVisible = detailsDiv.style.display === "block";
-
-    if (isVisible) {
-      detailsDiv.style.display = "none";
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/${jobId}`, {
-        headers: { Authorization: token },
-      });
-
-      const data = await response.json();
-
-      if (data.job) {
-        detailsDiv.innerHTML = `
-          <p>Description: ${data.job.description || "No description"}</p>
-          <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
-          <p>
-            Status: ${data.job.status}
-            | Completed:
-            ${data.job.completed_at ? new Date(data.job.completed_at).toLocaleString() : "Not completed"}
-          </p>
-        `;
-        detailsDiv.style.display = "block";
+      .header {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 25px;
       }
-    } catch (error) {
-      console.error("Error loading job details:", error);
-    }
-  }
 
-  async function createJob() {
-    const title = document.getElementById("jobTitle").value;
-    const description = document.getElementById("jobDescription").value;
-    const priority = document.getElementById("jobPriority").value;
+      .form-container {
+        width: 450px;
+        margin: 0 auto 25px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-    if (!title) {
-      alert("Job title is required");
-      return;
-    }
+      input,
+      textarea,
+      select,
+      button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
 
-    try {
-      const response = await fetch(`${API_URL}/create`, {
-        method: "POST",
-        headers: {
-          Authorization: token,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title, description, priority }),
-      });
+      button {
+        background: #007bff;
+        border: none;
+        color: white;
+        cursor: pointer;
+      }
 
-      const data = await response.json();
-      if (response.ok) {
-        alert("Job created successfully");
+      .logout-btn {
+        background: #dc3545;
+      }
+
+      .jobs-container {
+        width: 95vw;
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .job-card {
+        padding: 12px;
+        margin: 12px 0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+
+      .job-card:hover {
+        transform: scale(1.02);
+      }
+
+      /* Status colors */
+      .pending {
+        background: #fff3cd;
+        border-left: 6px solid #ffca2c;
+      }
+      .processing {
+        background: #cfe2ff;
+        border-left: 6px solid #0d6efd;
+      }
+      .completed {
+        background: #d1e7dd;
+        border-left: 6px solid #198754;
+      }
+
+      .job-details {
+        margin-top: 10px;
+        padding: 10px;
+        background: #ffffff;
+        border-left: 3px solid #007bff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      <h2>Dashboard</h2>
+    </div>
+
+    <!-- CREATE JOB BOX -->
+    <div class="form-container">
+      <h3>Create New Job</h3>
+      <input id="jobTitle" type="text" placeholder="Job Title" required />
+      <textarea id="jobDescription" placeholder="Description"></textarea>
+
+      <select id="jobPriority">
+        <option value="1">Low</option>
+        <option value="2">Medium</option>
+        <option value="3">High</option>
+      </select>
+
+      <button onclick="createJob()">Add Job</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- JOBS LIST BOX -->
+    <div class="jobs-container">
+      <h3>Your Jobs</h3>
+      <div id="jobsList">Loading jobs...</div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+      const API_URL = "http://localhost:3000/api/v1/jobs";
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Unauthorized access");
+        window.location.href = "home.html";
+      }
+
+      function getCardClass(status) {
+        return status.toLowerCase();
+      }
+
+      async function fetchJobs() {
+        const res = await fetch(`${API_URL}/list`, {
+          headers: { Authorization: token },
+        });
+        const data = await res.json();
+        const jobsList = document.getElementById("jobsList");
+        jobsList.innerHTML = "";
+
+        if (!data.jobs.length) {
+          jobsList.innerHTML = "<p>No jobs found</p>";
+          return;
+        }
+
+        data.jobs.forEach((job) => {
+          const statusClass = getCardClass(job.status);
+          jobsList.innerHTML += `
+        <div class="job-card ${statusClass}" id="job-card-${job.id}" onclick="toggleJobDetails(${job.id})">
+          <strong>${job.title}</strong><br>
+          <small>Status: <span id="job-status-${job.id}">${job.status}</span> |
+          Priority: ${job.priority}</small>
+          <div id="job-details-${job.id}" class="job-details" style="display:none;"></div>
+        </div>
+      `;
+        });
+      }
+
+      async function toggleJobDetails(jobId) {
+        const div = document.getElementById(`job-details-${jobId}`);
+        const visible = div.style.display === "block";
+        div.style.display = visible ? "none" : "block";
+
+        if (!visible) {
+          const res = await fetch(`${API_URL}/${jobId}`, {
+            headers: { Authorization: token },
+          });
+          const data = await res.json();
+          if (!data.job) return;
+
+          div.innerHTML = `
+        <p>${data.job.description || "No description"}</p>
+        <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
+        <p>Status: ${data.job.status}</p>
+      `;
+        }
+      }
+
+      async function createJob() {
+        const title = document.getElementById("jobTitle").value;
+        if (!title) return alert("Title required");
+
+        const description = document.getElementById("jobDescription").value;
+        const priority = document.getElementById("jobPriority").value;
+
+        await fetch(`${API_URL}/create`, {
+          method: "POST",
+          headers: { Authorization: token, "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description, priority }),
+        });
+
         fetchJobs();
-      } else {
-        alert(data.message || "Failed to create job");
       }
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
-  function logout() {
-    localStorage.removeItem("token");
-    window.location.href = "home.html";
-  }
+      function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "home.html";
+      }
 
-  
-  fetchJobs();
+      fetchJobs();
 
-  const socket = io("http://localhost:3000");
+      const socket = io("http://localhost:3000");
 
-  socket.on("jobStatusUpdated", ({ jobId, status, completedAt }) => {
+      socket.on("jobStatusUpdated", ({ jobId, status }) => {
+        const statusSpan = document.getElementById(`job-status-${jobId}`);
+        const card = document.getElementById(`job-card-${jobId}`);
 
-  const statusSpan = document.getElementById(`job-status-${jobId}`);
-  if (statusSpan) {
-    statusSpan.textContent = status;
-  }
-
-  const detailsDiv = document.getElementById(`job-details-${jobId}`);
-  if (detailsDiv && detailsDiv.style.display === "block") {
-    (async () => {
-      const response = await fetch(`${API_URL}/${jobId}`, {
-        headers: { Authorization: token },
+        if (statusSpan) statusSpan.textContent = status;
+        if (card) {
+          card.classList.remove("pending", "processing", "completed");
+          card.classList.add(status.toLowerCase());
+        } else {
+          fetchJobs();
+        }
       });
-      const data = await response.json();
-      if (data.job) {
-        detailsDiv.innerHTML = `
-          <p>Description: ${data.job.description || "No description"}</p>
-          <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
-          <p>
-            Status: ${data.job.status}
-            | Completed:
-            ${data.job.completed_at
-              ? new Date(data.job.completed_at).toLocaleString()
-              : "Not completed"}
-          </p>
-        `;
-      }
-    })();
-  }
-
-});
-</script>
-
-</body>
+    </script>
+  </body>
 </html>
