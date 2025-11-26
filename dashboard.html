@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .dashboard-box {
+        background: #fff;
+        padding: 20px 30px;
+        width: 350px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 10px;
+        background: #dc3545;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #b52b38;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-box">
+      <h2>Welcome to Dashboard</h2>
+      <p>You are logged in successfully</p>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized access, please login first");
+        window.location.href = "home.html"; 
+      }
+
+      function logout() {
+        localStorage.removeItem("token");
+        alert("Logged out successfully");
+        window.location.href = "index.html";
+      }
+    </script>
+  </body>
+</html>
