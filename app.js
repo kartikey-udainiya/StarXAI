@@ -6,9 +6,10 @@ import authRouter from "./src/router/auth.js";
 import jobsRouter from "./src/router/jobs.js";
 import cors from "cors";
 import authLimiter from "./src/middleware/rateLimiter.js";
-import { authenticateUser } from "./src/middleware/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import pgClient from "./src/db/pg.js";
+import { initializeDB } from "./src/db/initDB.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,13 @@ io.on("connection", (socket) => {
     io.emit("jobStatusUpdated", data); 
   });
 });
+
+pgClient.connect()
+  .then(async () => {
+    console.log("Connected to PostgreSQL");
+    await initializeDB();
+  })
+  .catch(err => console.error("PostgreSQL connection error:", err));
 
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
