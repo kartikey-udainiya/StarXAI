@@ -40,7 +40,7 @@ app.get("/dashboard",(req, res) => {
   res.sendFile(path.join(__dirname,"dashboard.html"));
 });
 
-// app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/auth", authLimiter, authRouter);
 app.use("/api", authRouter);
 app.use("/api/v1/jobs", jobsRouter);
 

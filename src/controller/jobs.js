@@ -2,11 +2,22 @@ import pgClient from "../db/pg.js";
 import { jobQueue } from "../queue/jobQueue.js";
 import { io } from "../../app.js";
 import { createJobSchema } from "../validation/jobsValidations.js";
+import {redisClient} from "../db/redis.js";
+import { CACHE_TTL, redisKeys } from "../db/redisKeys.js";
 
 const jobs = {
   getAllJobs: async (req, res) => {
     try {
       const userId = req.token.userId;
+
+      // check if jobs list is cached in redis
+      const cachedJobs = await redisClient.get(redisKeys.listJobs(userId));
+      if (cachedJobs) {
+        return res
+          .status(200)
+          .send({ success: true, jobs: JSON.parse(cachedJobs) });
+      }
+
       const result = await pgClient.query(
         "SELECT id, title, priority, status FROM jobs WHERE user_id = $1 ORDER BY created_at DESC",
         [userId]
@@ -20,6 +31,8 @@ const jobs = {
           row.priority = "high";
         }
       });
+      await redisClient.setex(redisKeys.listJobs(userId), CACHE_TTL.JOB_LIST, JSON.stringify(result.rows));
+
       return res.status(200).send({ success: true, jobs: result.rows || [] });
     } catch (error) {
       res.status(500).send({ success: false, message: "Server error" });
@@ -37,6 +50,13 @@ const jobs = {
           .send({ success: false, message: "Job ID is required" });
       }
 
+      const cachedJob = await redisClient.get(redisKeys.JobById(userId, jobId));
+      if (cachedJob) {
+        return res
+          .status(200)
+          .send({ success: true, job: JSON.parse(cachedJob) });
+      }
+
       const result = await pgClient.query(
         "SELECT * FROM jobs WHERE id = $1 AND user_id = $2",
         [jobId, userId]
@@ -51,6 +71,8 @@ const jobs = {
           row.priority = "High";
         }
       });
+
+      await redisClient.setex(redisKeys.JobById(userId, jobId), CACHE_TTL.JOB_DETAILS, JSON.stringify(result.rows[0]));
 
       if (result.rows.length === 0)
         return res
@@ -72,6 +94,9 @@ const jobs = {
       if (error) {
         return res.status(400).send({ success: false, message: error.details[0].message });
       }
+
+      //delete cached jobs list for the user
+      await redisClient.del(redisKeys.listJobs(userId));
 
       const result = await pgClient.query(
         `INSERT INTO jobs (user_id, title, description, priority, status)
