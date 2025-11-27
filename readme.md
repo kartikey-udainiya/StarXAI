@@ -2,11 +2,12 @@ Instruction
 StarXAI is a background job processing system that allows authenticated users to create tasks (jobs) and track their progress in real time. Jobs are queued and processed asynchronously based on priority using BullMQ. PostgreSQL is used as the primary database, Redis is used for caching and queue management, and Socket.IO provides live updates of job status on the dashboard without manual refresh. The entire application is Docker-ready and supports scalable backend worker processing.
 
 Project Features
+
     1. JWT Authentication
     2. Create Jobs with Priority
     3. 3Background Processing (BullMQ Worker)
-    4. PostgreSQL Storage  
-    5. Redis Caching --> deacreasing Latency upto 96% ( average 130-140ms to 10 to 15ms)
+    4. PostgreSQL Storage 
+    5. Redis Caching --> deacreasing Latency upto 96% ( average 130-140ms to 10 to 15ms.
     6. Socket.IO Based Realtime Status Updates
     7. Rate Limiting Middleware
 
