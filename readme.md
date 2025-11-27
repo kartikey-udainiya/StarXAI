@@ -45,5 +45,7 @@ Ans:
 
 1. Requirement
     a.) Docker daemon
-2. Go in the folder directory and Run the commmand. --> docker-compose up --build
-3. open the browser and type the URL --> localhost:3000/home
+2. Go in the folder directory Create a file in the root directory --> .env
+3. Copy the content of the File env-example-With-Docker and paste it in the newly created .env file. 
+4. And Run the commmand. --> docker-compose up --build
+5. Open the browser and type the URL --> localhost:3000/home
