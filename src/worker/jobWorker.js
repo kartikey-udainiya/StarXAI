@@ -36,15 +36,13 @@ const jobWorker = new Worker(
   async (job) => {
     const { jobId, priority } = job.data;
 
-    console.log(jobId,priority);
-
-    // 1) Update status to processing in DB
+    // Update status to processing in DB
     await pgClient.query(
       "UPDATE jobs SET status = 'processing' WHERE id = $1",
       [jobId]
     );
 
-    // 2) Emit status change to all connected clients
+    // Emit status change to all connected clients
     socket.emit("jobStatusUpdated", {
       jobId,
       status: "processing",
