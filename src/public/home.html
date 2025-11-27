@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login & Register</title>
 
+<link rel="preconnect" href="https://cdn.socket.io">
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -59,7 +61,6 @@
 
 <div class="container">
     
-    <!-- Login Form -->
     <div id="loginForm">
         <h2>Login</h2>
         <input id="loginEmail" type="text" placeholder="Email" required>
@@ -68,7 +69,6 @@
         <p class="toggle" onclick="showRegister()">Don’t have an account? Register</p>
     </div>
 
-    <!-- Register Form -->
     <div id="registerForm" style="display: none;">
         <h2>Register</h2>
         <input id="registerEmail" type="text" placeholder="Email" required>
@@ -78,6 +78,9 @@
     </div>
 
 </div>
+
+<script src="/config.js"></script>
+
 
 <script>
     function showRegister() {
@@ -89,59 +92,54 @@
         document.getElementById("loginForm").style.display = "block";
     }
 
-    const API_URL = "http://localhost:3000/api";
+    const API_URL = window.APP_CONFIG.API_URL;
+    const DASHBOARD_URL = window.APP_CONFIG.SOCKET_URL + "/dashboard";
+    const HOME_URL = window.APP_CONFIG.SOCKET_URL + "/home";
 
-  
-    // Register Function
-async function registerUser() {
-    const email = document.getElementById("registerEmail").value;
-    const password = document.getElementById("registerPassword").value;
+    async function registerUser() {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
 
-    try {
-        const response = await fetch(`${API_URL}/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-        const data = await response.json();
+            const data = await res.json();
 
-        if (response.status === 201 && data.success) {
-            alert(data.message);
-            showLogin();
-        } else {
-            alert(data.message || "Registration failed");
+            if (res.status === 201 && data.success) {
+                alert(data.message);
+                showLogin();
+            } else {
+                alert(data.message || "Registration failed");
+            }
+        } catch (err) {
+            alert("Server connection failed");
+            console.error(err);
         }
-
-    } catch (error) {
-        alert("Error: Unable to connect to server");
-        console.error(error);
     }
-}
 
-
-    // Login Function
     async function loginUser() {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
 
-        const response = await fetch(`${API_URL}/login`, {
+        const res = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
 
-        const data = await response.json();
-        console.log(data);
+        const data = await res.json();
 
         if (data.token) {
             localStorage.setItem("token", data.token);
-            window.location.href = "http://localhost:3000/dashboard";
+            window.location.href = DASHBOARD_URL;
         } else {
             alert(data.message || "Login failed");
         }
     }
-
 </script>
 
 </body>

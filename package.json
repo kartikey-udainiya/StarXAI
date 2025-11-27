@@ -7,10 +7,11 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-  "start": "concurrently -n SERVER,WORKER -c green,blue \"npm run server\" \"npm run worker\"",
-  "server": "node app.js",
-  "worker": "node ./src/worker/jobWorker.js"
-},
+    "start:api": "node app.js",
+    "start:worker": "node ./src/worker/jobWorker.js",
+    "dev:api": "nodemon app.js",
+    "dev:worker": "nodemon ./src/worker/jobWorker.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bullmq": "^5.65.0",
