@@ -136,7 +136,7 @@ async function registerUser() {
 
         if (data.token) {
             localStorage.setItem("token", data.token);
-            window.location.href = "dashboard.html";
+            window.location.href = "http://localhost:3000/dashboard";
         } else {
             alert(data.message || "Login failed");
         }
