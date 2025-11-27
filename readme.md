@@ -23,7 +23,7 @@ Ans:
     c.) Node
 
 2. Go in the folder directory Create a file in the root directory --> .env
-3. Copy the content of the File .env.example-Without-Docker and paste it in the newly created .env file.
+3. Copy the content of the File env-example-Without-Docker and paste it in the newly created .env file.
 
     a.) After pasting change the values of the Postgres and redis as per your system
          (carefully look at the Postgres env and follow the instructions)
