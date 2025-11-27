@@ -192,34 +192,44 @@
 
       const socket = io("http://localhost:3000");
 
-      socket.on("jobStatusUpdated", async ({ jobId, status, completedAt }) => {
-        const statusSpan = document.getElementById(`job-status-${jobId}`);
-        const card = document.getElementById(`job-card-${jobId}`);
-        const detailsDiv = document.getElementById(`job-details-${jobId}`);
+     socket.on("jobStatusUpdated", async ({ jobId, status, completedAt }) => {
+  const statusSpan = document.getElementById(`job-status-${jobId}`);
+  const card = document.getElementById(`job-card-${jobId}`);
+  const detailsDiv = document.getElementById(`job-details-${jobId}`);
 
-        if (statusSpan) statusSpan.textContent = status;
-        if (card) {
-          card.classList.remove("pending", "processing", "completed");
-          card.classList.add(status.toLowerCase());
-        }
+  if (statusSpan) statusSpan.textContent = status;
+  if (card) {
+    card.classList.remove("pending", "processing", "completed");
+    card.classList.add(status.toLowerCase());
+  }
 
-        if (detailsDiv && detailsDiv.style.display === "block") {
-          const response = await fetch(`${API_URL}/${jobId}`, {
-            headers: { Authorization: token },
-          });
-          const data = await response.json();
-          detailsDiv.innerHTML = `
-        <p>${data.job.description || "No description"}</p>
-        <p>Created: ${new Date(data.job.created_at).toLocaleString()}</p>
-        <p>Status: ${data.job.status}</p>
-        <p>Completed: ${
-          data.job.completed_at
-            ? new Date(data.job.completed_at).toLocaleString()
-            : "Not completed"
-        }</p>
-      `;
-        }
+  if (detailsDiv) {
+    try {
+      const res = await fetch(`${API_URL}/${jobId}`, {
+        headers: { Authorization: token },
       });
+      const { job } = await res.json();
+
+      if (job) {
+        detailsDiv.innerHTML = `
+          <p>${job.description || "No description"}</p>
+          <p>Created: ${new Date(job.created_at).toLocaleString()}</p>
+          <p>Status: ${job.status}</p>
+          <p>Completed: ${
+            job.completed_at
+              ? new Date(job.completed_at).toLocaleString()
+              : "Not completed"
+          }</p>
+        `;
+
+        detailsDiv.style.display = "block"; 
+      }
+    } catch (e) {
+      console.error("Realtime details update failed", e);
+    }
+  }
+});
+
     </script>
   </body>
 </html>

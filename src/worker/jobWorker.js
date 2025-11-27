@@ -19,7 +19,7 @@ const socket = ClientIO(SERVER_URL, {
 });
 
 socket.on("connect", () => {
-  console.log("Worker connected → Socket.IO ID:", socket.id);
+  console.log("Worker connected Socket.IO ID:", socket.id);
 });
 
 socket.on("connect_error", (err) => {
@@ -45,7 +45,7 @@ const jobWorker = new Worker(
     await redisClient.del(redisKeys.listJobs(userId));
     await redisClient.del(redisKeys.JobById(userId, jobId));
 
-    socket.emit("jobStatusUpdateFromWorker", {
+    socket.emit("jobStatusUpdated", {
       jobId,
       status: "processing",
     });
@@ -76,7 +76,7 @@ jobWorker.on("completed", async (job, result) => {
   await redisClient.del(redisKeys.listJobs(userId));
   await redisClient.del(redisKeys.JobById(userId, jobId));
 
-  socket.emit("jobStatusUpdateFromWorker", {
+  socket.emit("jobStatusUpdated", {
     jobId,
     status: "completed",
     completedAt,

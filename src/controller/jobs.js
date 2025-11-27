@@ -113,7 +113,7 @@ const jobs = {
 
       await jobQueue.add(
         "job-processing",
-        { jobId: newJob.id, priority: newJob.priority },
+        { jobId: newJob.id, priority: newJob.priority, userId: userId },
         {
           priority: newJob.priority === 3 ? 0 : newJob.priority === 2 ? 5 : 10,
         }
