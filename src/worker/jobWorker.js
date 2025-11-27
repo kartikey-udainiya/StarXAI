@@ -13,9 +13,11 @@ import { Worker } from "bullmq";
 import pgClient from "../db/pg.js";
 import { redisConnection } from "../db/redis.js";
 import { io as ClientIO } from "socket.io-client";
-console.log("PGHOST from worker:", process.env.PGHOST);
 
-const socket = ClientIO("http://localhost:3000");
+const host = process.env.HOST || "localhost";
+const port = process.env.PORT || 3000;
+
+const socket = ClientIO(`http://${host}:${port}`);
 
 socket.on("connect", () => {
   console.log("Worker connected to Socket.IO server with id:", socket.id);

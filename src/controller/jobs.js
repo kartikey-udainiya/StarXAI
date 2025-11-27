@@ -1,6 +1,7 @@
 import pgClient from "../db/pg.js";
 import { jobQueue } from "../queue/jobQueue.js";
 import { io } from "../../app.js";
+import { createJobSchema } from "../validation/jobsValidations.js";
 
 const jobs = {
   getAllJobs: async (req, res) => {
@@ -29,10 +30,18 @@ const jobs = {
     try {
       const userId = req.token.userId;
       const jobId = req.params.id;
+
+      if (!jobId) {
+        return res
+          .status(400)
+          .send({ success: false, message: "Job ID is required" });
+      }
+
       const result = await pgClient.query(
         "SELECT * FROM jobs WHERE id = $1 AND user_id = $2",
         [jobId, userId]
       );
+
       result.rows.forEach((row) => {
         if (row.priority === 1) {
           row.priority = "Low";
@@ -42,6 +51,7 @@ const jobs = {
           row.priority = "High";
         }
       });
+
       if (result.rows.length === 0)
         return res
           .status(404)
@@ -58,10 +68,9 @@ const jobs = {
       const { title, description, priority } = req.body;
       const userId = req.token.userId;
 
-      if (!title) {
-        return res
-          .status(400)
-          .send({ success: false, message: "Title is required" });
+      const { error } = createJobSchema.validate({ title, description, priority });
+      if (error) {
+        return res.status(400).send({ success: false, message: error.details[0].message });
       }
 
       const result = await pgClient.query(

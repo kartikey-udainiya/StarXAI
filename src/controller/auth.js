@@ -1,12 +1,18 @@
 import pgClient from '../db/pg.js';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt.js';
+import { registerSchema,loginSchema} from '../validation/authValidations.js';
 
 const auth = {
     register: async (req, res) => {
         try {
             const { email, password } = req.body;
-            
+
+            const { error } = registerSchema.validate({ email, password });
+            if (error) {
+                return res.status(400).send({ success: false, message: error.details[0].message });
+            }
+
             const userCheck = await pgClient.query("SELECT * FROM users WHERE email = $1", [email]);
             if (userCheck.rows.length > 0) {
                 return res.status(400).send({ success: false, message: "User already exists" });
@@ -27,7 +33,12 @@ const auth = {
     login: async (req, res) => {
         try {
             const { email, password } = req.body;
-            console.log("Logging in user:", email);
+
+            const { error } = loginSchema.validate({ email, password });
+            if (error) {
+                return res.status(400).send({ success: false, message: error.details[0].message });
+            }
+
             const userResult = await pgClient.query("SELECT * FROM users WHERE email = $1", [email]);
             if (userResult.rows.length === 0) {
                 return res.status(400).send({ success: false, message: "Invalid email or password" });
