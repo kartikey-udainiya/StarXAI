@@ -15,7 +15,7 @@ Dockerized Full Stack
 First clone this Git repo --> https://github.com/kartikey-udainiya/StarXAI.git 
 
 
-#How to run the Project with docker?
+#How to run the Project without docker?
 Ans:
 
 1. Requirement
